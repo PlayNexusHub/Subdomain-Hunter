@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+    <title>PlayNexus Subdomain Hunter</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="dark">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <img src="../../assets/logo.png" alt="PlayNexus" class="logo" onerror="this.style.display='none'">
+                    <h1>Subdomain Hunter</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="importBtn">
+                        <span>📁</span> Import Wordlist
+                    </button>
+                    <button class="btn btn-secondary" id="dnsLookupBtn">
+                        <span>🔍</span> DNS Lookup
+                    </button>
+                    <button class="btn btn-secondary" id="settingsBtn">
+                        <span>⚙️</span> Settings
+                    </button>
+                    <button class="btn btn-secondary" id="helpBtn">
+                        <span>❓</span> Help
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Hunt Configuration -->
+            <section class="hunt-section">
+                <div class="hunt-card">
+                    <h3>Subdomain Hunt Configuration</h3>
+                    
+                    <div class="input-group">
+                        <label for="targetDomain">Target Domain:</label>
+                        <input 
+                            type="text" 
+                            id="targetDomain" 
+                            class="domain-input"
+                            placeholder="example.com"
+                        >
+                    </div>
+
+                    <div class="hunt-methods">
+                        <h4>Hunt Methods</h4>
+                        <div class="method-options">
+                            <label class="method-option">
+                                <input type="checkbox" id="enableBruteforce" checked>
+                                <span class="method-label">Brute Force</span>
+                                <span class="method-desc">Dictionary-based subdomain enumeration</span>
+                            </label>
+                            <label class="method-option">
+                                <input type="checkbox" id="enableDnsEnum" checked>
+                                <span class="method-label">DNS Enumeration</span>
+                                <span class="method-desc">DNS record analysis and zone walking</span>
+                            </label>
+                            <label class="method-option">
+                                <input type="checkbox" id="enableWebScraping">
+                                <span class="method-label">Web Scraping</span>
+                                <span class="method-desc">Search engine and web content analysis</span>
+                            </label>
+                            <label class="method-option">
+                                <input type="checkbox" id="enableCertTransparency">
+                                <span class="method-label">Certificate Transparency</span>
+                                <span class="method-desc">CT log analysis for subdomain discovery</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="hunt-options">
+                        <h4>Advanced Options</h4>
+                        <div class="option-row">
+                            <div class="option-group">
+                                <label for="concurrency">Concurrency:</label>
+                                <input type="number" id="concurrency" value="10" min="1" max="50">
+                            </div>
+                            <div class="option-group">
+                                <label for="timeout">Timeout (ms):</label>
+                                <input type="number" id="timeout" value="5000" min="1000" max="30000">
+                            </div>
+                        </div>
+                        <div class="wordlist-section">
+                            <label for="wordlistSelect">Wordlist:</label>
+                            <select id="wordlistSelect">
+                                <option value="common">Common Subdomains (Built-in)</option>
+                                <option value="custom">Custom Wordlist</option>
+                            </select>
+                            <div class="custom-wordlist hidden" id="customWordlistSection">
+                                <textarea 
+                                    id="customWordlist" 
+                                    placeholder="Enter subdomains, one per line..."
+                                    rows="5"
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hunt-controls">
+                        <button class="btn btn-primary" id="startHuntBtn">
+                            <span>🎯</span> Start Hunt
+                        </button>
+                        <button class="btn btn-secondary" id="stopHuntBtn" disabled>
+                            <span>⏹️</span> Stop Hunt
+                        </button>
+                        <button class="btn btn-secondary" id="clearResultsBtn">
+                            <span>🗑️</span> Clear Results
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section">
+                <!-- Progress Section -->
+                <div class="progress-section hidden" id="progressSection">
+                    <div class="progress-card">
+                        <h4>Hunt Progress</h4>
+                        <div class="progress-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Progress:</span>
+                                <span class="stat-value" id="progressPercent">0%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Found:</span>
+                                <span class="stat-value" id="foundCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Current:</span>
+                                <span class="stat-value" id="currentSubdomain">-</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No Results State -->
+                <div class="no-results" id="noResults">
+                    <div class="no-results-icon">🎯</div>
+                    <h3>Subdomain Hunter</h3>
+                    <p>Enter a target domain and configure hunt methods to discover subdomains.</p>
+                    <div class="features-list">
+                        <div class="feature-item">✓ DNS enumeration and zone analysis</div>
+                        <div class="feature-item">✓ Brute force with custom wordlists</div>
+                        <div class="feature-item">✓ Certificate transparency logs</div>
+                        <div class="feature-item">✓ Web scraping and search engines</div>
+                        <div class="feature-item">✓ Real-time progress tracking</div>
+                    </div>
+                </div>
+
+                <!-- Results Content -->
+                <div class="results-content hidden" id="resultsContent">
+                    <!-- Statistics -->
+                    <div class="stats-section">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <h4>Total Found</h4>
+                                <div class="stat-number" id="totalFound">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Alive</h4>
+                                <div class="stat-number success" id="aliveCount">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Dead</h4>
+                                <div class="stat-number danger" id="deadCount">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Time Elapsed</h4>
+                                <div class="stat-number" id="timeElapsed">0s</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Tabs -->
+                    <div class="results-tabs">
+                        <button class="results-tab active" data-tab="subdomains">Subdomains</button>
+                        <button class="results-tab" data-tab="methods">Methods</button>
+                        <button class="results-tab" data-tab="analysis">Analysis</button>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content">
+                        <!-- Subdomains Tab -->
+                        <div class="tab-pane active" id="subdomains">
+                            <div class="results-controls">
+                                <div class="filter-controls">
+                                    <input type="text" id="filterInput" placeholder="Filter subdomains...">
+                                    <select id="statusFilter">
+                                        <option value="all">All Status</option>
+                                        <option value="alive">Alive Only</option>
+                                        <option value="dead">Dead Only</option>
+                                        <option value="unknown">Unknown Only</option>
+                                    </select>
+                                    <select id="methodFilter">
+                                        <option value="all">All Methods</option>
+                                        <option value="bruteforce">Brute Force</option>
+                                        <option value="dns-enum">DNS Enum</option>
+                                        <option value="web-scraping">Web Scraping</option>
+                                        <option value="certificate-transparency">Cert Transparency</option>
+                                    </select>
+                                </div>
+                                <div class="view-controls">
+                                    <button class="btn btn-secondary" id="copyAllBtn">Copy All</button>
+                                    <button class="btn btn-secondary" id="copyAliveBtn">Copy Alive</button>
+                                </div>
+                            </div>
+
+                            <div class="results-table">
+                                <div class="table-header">
+                                    <div class="col-subdomain">Subdomain</div>
+                                    <div class="col-ip">IP Address</div>
+                                    <div class="col-status">Status</div>
+                                    <div class="col-method">Method</div>
+                                    <div class="col-type">Type</div>
+                                    <div class="col-actions">Actions</div>
+                                </div>
+                                <div class="table-body" id="subdomainsTableBody">
+                                    <!-- Results will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Methods Tab -->
+                        <div class="tab-pane" id="methods">
+                            <div class="methods-analysis">
+                                <h4>Hunt Methods Performance</h4>
+                                <div class="methods-grid" id="methodsGrid">
+                                    <!-- Method statistics will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Analysis Tab -->
+                        <div class="tab-pane" id="analysis">
+                            <div class="analysis-section">
+                                <h4>Domain Analysis</h4>
+                                <div class="analysis-grid">
+                                    <div class="analysis-card">
+                                        <h5>IP Distribution</h5>
+                                        <div class="ip-list" id="ipDistribution">
+                                            <!-- IP analysis will be populated here -->
+                                        </div>
+                                    </div>
+                                    <div class="analysis-card">
+                                        <h5>Subdomain Patterns</h5>
+                                        <div class="pattern-list" id="subdomainPatterns">
+                                            <!-- Pattern analysis will be populated here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Export Section -->
+                    <div class="export-section">
+                        <h4>Export Results</h4>
+                        <div class="export-buttons">
+                            <button class="btn btn-secondary" id="exportJson">
+                                <span>📄</span> Export JSON
+                            </button>
+                            <button class="btn btn-secondary" id="exportCsv">
+                                <span>📊</span> Export CSV
+                            </button>
+                            <button class="btn btn-secondary" id="exportTxt">
+                                <span>📝</span> Export TXT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- DNS Lookup Modal -->
+    <div class="modal hidden" id="dnsLookupModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>DNS Lookup</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="dns-form">
+                    <div class="form-group">
+                        <label for="dnsHostname">Hostname:</label>
+                        <input type="text" id="dnsHostname" placeholder="example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="recordType">Record Type:</label>
+                        <select id="recordType">
+                            <option value="A">A (IPv4)</option>
+                            <option value="AAAA">AAAA (IPv6)</option>
+                            <option value="CNAME">CNAME</option>
+                            <option value="MX">MX</option>
+                            <option value="NS">NS</option>
+                            <option value="TXT">TXT</option>
+                            <option value="SOA">SOA</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="performLookup">Lookup</button>
+                </div>
+                <div class="dns-results" id="dnsResults">
+                    <!-- DNS results will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal hidden" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label for="themeSelect">Theme:</label>
+                    <select id="themeSelect">
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                        <option value="auto">Auto</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label for="defaultConcurrency">Default Concurrency:</label>
+                    <input type="number" id="defaultConcurrency" min="1" max="50" value="10">
+                </div>
+                <div class="setting-group">
+                    <label for="defaultTimeout">Default Timeout (ms):</label>
+                    <input type="number" id="defaultTimeout" min="1000" max="30000" value="5000">
+                </div>
+                <div class="setting-group">
+                    <label>
+                        <input type="checkbox" id="saveHistoryCheck">
+                        Save hunt history
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <label>
+                        <input type="checkbox" id="enableBruteforceDefault" checked>
+                        Enable brute force by default
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <label>
+                        <input type="checkbox" id="enableDnsEnumDefault" checked>
+                        Enable DNS enumeration by default
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary">Cancel</button>
+                <button class="btn btn-primary" id="saveSettings">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal hidden" id="helpModal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>Help & Documentation</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="help-section">
+                    <h4>About Subdomain Hunter</h4>
+                    <p>This tool helps you discover subdomains of a target domain using multiple enumeration techniques.</p>
+                </div>
+
+                <div class="help-section">
+                    <h4>Hunt Methods</h4>
+                    <ul>
+                        <li><strong>Brute Force:</strong> Tests common subdomain names against the target domain</li>
+                        <li><strong>DNS Enumeration:</strong> Analyzes DNS records and attempts zone transfers</li>
+                        <li><strong>Web Scraping:</strong> Searches for subdomains in search engine results</li>
+                        <li><strong>Certificate Transparency:</strong> Queries CT logs for certificate-based discovery</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h4>Best Practices</h4>
+                    <ul>
+                        <li>Start with brute force and DNS enumeration for reliable results</li>
+                        <li>Use appropriate concurrency levels to avoid overwhelming targets</li>
+                        <li>Respect rate limits and target server resources</li>
+                        <li>Only scan domains you own or have permission to test</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h4>Legal Notice</h4>
+                    <p><strong>Important:</strong> Only use this tool on domains you own or have explicit permission to test. Unauthorized scanning may violate terms of service or local laws.</p>
+                </div>
+
+                <div class="help-section">
+                    <h4>Support</h4>
+                    <p>For support and questions, contact: <a href="mailto:playnexushq@gmail.com">playnexushq@gmail.com</a></p>
+                    <p>Owner: Nortaq | PlayNexus Ecosystem</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

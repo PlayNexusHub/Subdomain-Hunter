@@ -1,0 +1,85 @@
+{
+  "name": "playnexus-subdomain-hunter",
+  "version": "1.0.0",
+  "description": "PlayNexus Subdomain Hunter - Professional DNS enumeration and subdomain discovery tool",
+  "main": "src/main.js",
+  "author": {
+    "name": "Nortaq",
+    "email": "playnexushq@gmail.com"
+  },
+  "license": "Proprietary",
+  "homepage": "https://playnexus.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/playnexus/subdomain-hunter"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --publish=never",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix"
+  },
+  "dependencies": {
+    "electron": "^27.0.0",
+    "electron-updater": "^6.1.4",
+    "electron-store": "^8.1.0",
+    "dns": "^0.2.2",
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "node-fetch": "^3.3.2",
+    "async": "^3.2.4",
+    "date-fns": "^2.30.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.6.4",
+    "jest": "^29.7.0",
+    "eslint": "^8.52.0"
+  },
+  "build": {
+    "appId": "com.playnexus.subdomain-hunter",
+    "productName": "PlayNexus Subdomain Hunter",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "docs/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico",
+      "publisherName": "Nortaq",
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PlayNexus Subdomain Hunter"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "playnexus",
+      "repo": "subdomain-hunter"
+    }
+  },
+  "keywords": [
+    "subdomain",
+    "dns",
+    "enumeration",
+    "reconnaissance",
+    "security",
+    "playnexus",
+    "electron"
+  ]
+}
